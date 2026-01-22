@@ -2,6 +2,13 @@
 
 This repository contains the complete, runnable profiling framework for analyzing ExecuTorch model performance with SME2 acceleration.
 
+## 📚 Learning Path
+
+This code repository accompanies the [**Revealing latent ExecuTorch latency after SME2 acceleration**](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) learning path, which provides comprehensive documentation, step-by-step instructions, and detailed explanations of the performance analysis workflow.
+
+For complete context, tutorials, and best practices, visit the learning path at:
+**https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/**
+
 ## Quick Start
 
 1. **Clone this repository:**
@@ -79,7 +86,7 @@ This repository contains the complete, runnable profiling framework for analyzin
 
 ## Adding Your Own Model
 
-See the learning path documentation for detailed onboarding instructions. The key steps:
+See the [learning path documentation](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) for detailed onboarding instructions. The key steps:
 
 1. Create `model_profiling/models/<your_model>/` with:
    - `__init__.py` - Registers the model
@@ -99,4 +106,4 @@ The pipeline is **model-agnostic** - once you export a `.pte`, everything else s
 - **Command reference**: See `model_profiling/pipeline_commands.md` for detailed workflow
 - **Scripts overview**: See `model_profiling/scripts/readme.md` for script documentation
 - **Comprehensive report generation**: See `agent_skill_ml_profiling/07_report_generation.md` for complete workflow including operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
-- **Learning path**: See the main learning path documentation for context and examples
+- **Learning path**: See the [main learning path documentation](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) for context, tutorials, and examples
