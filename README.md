@@ -6,9 +6,6 @@ This repository contains the complete, runnable profiling framework for analyzin
 
 This code repository accompanies the [**Revealing latent ExecuTorch latency after SME2 acceleration**](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) learning path, which provides comprehensive documentation, step-by-step instructions, and detailed explanations of the performance analysis workflow.
 
-For complete context, tutorials, and best practices, visit the learning path at:
-**https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/**
-
 ## Quick Start
 
 1. **Clone this repository:**
