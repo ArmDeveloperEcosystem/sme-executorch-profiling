@@ -36,11 +36,9 @@ This profiling kit helps you:
 
 **Key Insight**: After SME2 accelerates CONV and GEMM operations (3-15× faster), data movement operations (transpose, reshape, layout conversions) often become the dominant bottleneck. This profiling kit makes this bottleneck shift visible, showing you exactly where to focus optimization efforts next.
 
-## 📚 Learning Path (Optional)
+## Learning Path (Optional)
 
 This code repository accompanies the [**Revealing latent ExecuTorch latency after SME2 acceleration**](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) learning path, which provides comprehensive documentation, step-by-step instructions, and detailed explanations of the performance analysis workflow.
-
-**Note**: This repository is **self-contained** and can be used independently. The learning path provides additional context, tutorials, and best practices, but all necessary information to use this kit is included in this repository.
 
 ## Quick Start
 
