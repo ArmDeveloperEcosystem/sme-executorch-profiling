@@ -19,7 +19,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--only", nargs="*", help="Run only the specified experiments.")
     parser.add_argument("--analysis-only", action="store_true", help="Skip execution, re-run analysis.")
     parser.add_argument("--verbose", action="store_true", help="Verbose logging.")
-    parser.add_argument("--remote-device", type=str, help="Remote device address (e.g., '10.1.16.56:5555') for ADB connection.")
+    parser.add_argument("--remote-device", type=str, help="Remote device address (e.g., '192.168.1.100:5555') for ADB connection.")
     return parser.parse_args()
 
 

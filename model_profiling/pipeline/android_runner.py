@@ -19,7 +19,7 @@ class AndroidRunnerSettings:
     device_path: str = "/data/local/tmp/executorch"
     auto_push_runner: bool = True
     adb_binary: str = "adb"
-    remote_device: Optional[str] = None  # e.g., "10.1.16.56:5555" for remote ADB connection
+    remote_device: Optional[str] = None  # e.g., "192.168.1.100:5555" for remote ADB connection
 
 
 class AndroidRunner(BaseRunner):

@@ -130,7 +130,7 @@ git submodule update --init --recursive
 - Validation script: `model_profiling/scripts/validate_setup.py`
 - Prerequisites check: `model_profiling/scripts/check_prereqs.sh`
 - Learning path: `02-setup-and-model-onboarding.md` (detailed setup instructions)
-- ExecuTorch setup reference: `/Users/jaszhu01/Local/Github/sme2_executorch/pr16533_env_setup.md`
+- ExecuTorch setup: See ExecuTorch documentation for environment setup details
 
 **Assets**:
 - `model_profiling/scripts/setup_repo.sh` - Main setup orchestration script

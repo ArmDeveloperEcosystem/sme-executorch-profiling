@@ -109,7 +109,7 @@ python3 model_profiling/scripts/mac_pipeline.py \
 # Android with remote device
 python3 model_profiling/scripts/android_pipeline.py \
   --config model_profiling/configs/android_experiment.json \
-  --remote-device 10.1.16.56:5555
+  --remote-device 192.168.1.100:5555
 ```
 
 **Note**: The pipeline **automatically runs analysis** after profiling, generating CSV files from ETDump. No separate `analyze_results.py` step needed.
