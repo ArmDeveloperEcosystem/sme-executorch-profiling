@@ -158,6 +158,8 @@ You have two options for detailed onboarding instructions:
    - Operator replacement strategies
    - Shape constraint handling
    - Export-friendly refactoring patterns
+   
+   **Note**: EdgeTAM is a third-party open source project. When cloning EdgeTAM, you must maintain all copyright notices and comply with EdgeTAM's license terms. See the onboarding skill for details.
 
 2. **Learning Path** (for comprehensive context): See the [learning path documentation](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) for detailed onboarding instructions, tutorials, and best practices.
 
@@ -197,3 +199,9 @@ The pipeline automatically handles analysis and report generation - no model-spe
 ### External Resources
 
 - **Learning Path**: [Revealing latent ExecuTorch latency after SME2 acceleration](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) - Comprehensive documentation, tutorials, and best practices (optional - this repository is self-contained)
+
+## License
+
+This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
+
+**Third-party licenses**: This repository includes instructions to use third-party open source projects (e.g., EdgeTAM). When using such projects, you must comply with their respective licenses. See the EdgeTAM onboarding documentation for license compliance requirements.

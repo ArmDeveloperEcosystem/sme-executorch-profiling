@@ -30,6 +30,12 @@ The process involves:
 - **Repository**: https://github.com/facebookresearch/EdgeTAM
 - **Location**: `model_profiling/models/edgetam/edgetam_core/`
 
+**License Compliance**: EdgeTAM is a third-party open source project. When you clone the EdgeTAM repository, you must:
+- **Maintain all copyright notices** from the EdgeTAM repository
+- **Comply with EdgeTAM's license terms** (see `LICENSE` file in the cloned `edgetam_core/` directory)
+- **Do not remove or modify** license files, copyright headers, or attribution notices
+- **Review the license** before using EdgeTAM in your projects to ensure compliance with your use case
+
 **Prerequisites**:
 - `.venv/` activated
 - ExecuTorch installed (from `01_setup_workspace`)
@@ -53,6 +59,8 @@ mkdir -p model_profiling/models/edgetam
 
 ### 3. Clone EdgeTAM Repository
 
+**Important**: EdgeTAM is a third-party open source project. When cloning, you must comply with EdgeTAM's license terms and maintain all copyright notices. See the license file in the cloned repository for details.
+
 ```bash
 # Clone EdgeTAM repository into the correct location
 EDGETAM_DIR="model_profiling/models/edgetam/edgetam_core"
@@ -61,12 +69,14 @@ if [ ! -d "$EDGETAM_DIR" ]; then
     echo "Cloning EdgeTAM repository..."
     git clone https://github.com/facebookresearch/EdgeTAM.git "$EDGETAM_DIR"
     echo "✓ EdgeTAM repository cloned"
+    echo "⚠️  Note: EdgeTAM is third-party open source. Review LICENSE file in $EDGETAM_DIR for license terms."
 else
     echo "✓ EdgeTAM repository already exists"
 fi
 
 # Verify repository was cloned
 test -d "$EDGETAM_DIR" && test -f "$EDGETAM_DIR/setup.py" && echo "✓ Repository verified"
+test -f "$EDGETAM_DIR/LICENSE" && echo "✓ License file present - review for compliance"
 ```
 
 ### 4. Download Checkpoint (Optional - if not already present)
@@ -401,7 +411,19 @@ After onboarding, you can:
 
 - EdgeTAM repository: https://github.com/facebookresearch/EdgeTAM
 - Checkpoint download: https://github.com/facebookresearch/EdgeTAM/tree/main/checkpoints
+- EdgeTAM license: See `LICENSE` file in cloned `edgetam_core/` directory
 - Next skill: `03_export_model.md` (export EdgeTAM to .pte format)
+
+## License Compliance
+
+**Important**: EdgeTAM is a third-party open source project from Facebook Research. When using EdgeTAM:
+
+1. **Review the license**: Check the `LICENSE` file in `model_profiling/models/edgetam/edgetam_core/` after cloning
+2. **Maintain copyright notices**: Do not remove or modify copyright headers, license files, or attribution notices
+3. **Comply with license terms**: Ensure your use case complies with EdgeTAM's license (typically Apache 2.0 or similar)
+4. **Preserve license files**: Keep all license and copyright files intact in the cloned repository
+
+This profiling framework only provides instructions to clone EdgeTAM from its original repository. The EdgeTAM code itself remains under its original license and copyright.
 
 **Assets**:
 - Generated files: `model_profiling/models/edgetam/model.py`, `__init__.py`
