@@ -5,6 +5,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"  # executorch_sme
 EXECUTORCH_DIR="${ROOT_DIR}/executorch"
 VENV_DIR="${ROOT_DIR}/.venv"
 
+# Allow override via PYTHON env var (defaults to python3)
+PYTHON="${PYTHON:-python3}"
+
 echo "[sme2-profiling] Working directory: ${ROOT_DIR}"
 
 on_err() {
@@ -17,12 +20,12 @@ if [[ -x "${ROOT_DIR}/model_profiling/scripts/check_prereqs.sh" ]]; then
   bash "${ROOT_DIR}/model_profiling/scripts/check_prereqs.sh"
 fi
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "ERROR: python3 not found. Install Python 3.9+ and retry." >&2
+if ! command -v "${PYTHON}" >/dev/null 2>&1; then
+  echo "ERROR: ${PYTHON} not found. Install Python 3.9+ and retry." >&2
   exit 1
 fi
 
-python3 - <<'PY'
+"${PYTHON}" - <<'PY'
 import sys
 if sys.version_info < (3, 9):
     raise SystemExit("ERROR: Python 3.9+ required")
@@ -35,7 +38,7 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 echo "[sme2-profiling] Creating venv: ${VENV_DIR}"
-python3 -m venv "${VENV_DIR}"
+"${PYTHON}" -m venv "${VENV_DIR}"
 
 echo "[sme2-profiling] Activating venv"
 # shellcheck disable=SC1091

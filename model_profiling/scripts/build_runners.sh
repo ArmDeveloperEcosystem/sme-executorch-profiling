@@ -18,6 +18,13 @@ fi
 # Activate venv if available
 if [[ -f "${ROOT_DIR}/.venv/bin/activate" ]]; then
   source "${ROOT_DIR}/.venv/bin/activate"
+  # Tell CMake to use the venv's Python
+  export Python3_EXECUTABLE="$(which python)"
+  export PYTHON_EXECUTABLE="${Python3_EXECUTABLE}"
+else
+  echo "ERROR: venv not found at ${ROOT_DIR}/.venv" >&2
+  echo "Run setup_repo.sh first." >&2
+  exit 1
 fi
 
 # Validate environment
@@ -38,16 +45,16 @@ fi
 
 # Merge CMake presets
 echo "Merging CMake presets..."
-python3 "${ROOT_DIR}/model_profiling/scripts/merge_cmake_presets.py"
+python "${ROOT_DIR}/model_profiling/scripts/merge_cmake_presets.py"
 
 # Build Mac runners (runners stay in executorch/cmake-out/ for version tracking)
 echo "Building mac-arm64 runner (SME2 ON)..."
 cd "${EXECUTORCH_DIR}"
-cmake --preset mac-arm64
+cmake --preset mac-arm64 -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
 cmake --build --preset build-mac-arm64 --target executor_runner
 
 echo "Building mac-arm64-sme2-off runner (SME2 OFF)..."
-cmake --preset mac-arm64-sme2-off
+cmake --preset mac-arm64-sme2-off -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
 cmake --build --preset build-mac-arm64-sme2-off --target executor_runner
 
 echo "Mac runners built:"
@@ -71,11 +78,11 @@ fi
 export ANDROID_NDK
 
 echo "Building android-arm64-v9a runner (SME2 ON)..."
-cmake --preset android-arm64-v9a
+cmake --preset android-arm64-v9a -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
 cmake --build --preset build-android-arm64-v9a --target executor_runner
 
 echo "Building android-arm64-v9a-sme2-off runner (SME2 OFF)..."
-cmake --preset android-arm64-v9a-sme2-off
+cmake --preset android-arm64-v9a-sme2-off -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
 cmake --build --preset build-android-arm64-v9a-sme2-off --target executor_runner
 
 # Copy libc++_shared.so if available (for Android device deployment)
