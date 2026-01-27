@@ -6,8 +6,8 @@ This is the fastest way to prove your environment + runner builds + pipeline wir
 
 ## Preconditions
 
-- You are in the profiling kit root (after copying `executorch_sme2_kit/` to your workspace):
-  - `.../executorch_sme2_kit/`
+- You are in the repository root:
+  - `.../sme-executorch-profiling/`
 - Network access is available (for cloning/installing ExecuTorch).
 
 ## Run

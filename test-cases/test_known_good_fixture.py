@@ -26,7 +26,7 @@ def test_known_good_fixture_validates() -> None:
         # validate_results expects a run dir that contains manifest.json + metrics.json + at least one .etdump under it
         # The fixture mimics the output layout under work/runs/mac/...
         p = run(
-            ["python", "scripts/validate_results.py", "--results", str(work / "runs" / "mac")],
+            ["python", "model_profiling/scripts/validate_results.py", "--results", str(work / "runs" / "mac")],
             cwd=ROOT,
         )
         assert p.returncode == 0, p.stdout + "\n" + p.stderr

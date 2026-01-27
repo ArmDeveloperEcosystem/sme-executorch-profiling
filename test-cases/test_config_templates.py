@@ -13,7 +13,7 @@ def _load(p: Path) -> dict:
 
 
 def test_mac_template_has_required_fields() -> None:
-    tpl = ROOT / "configs" / "templates" / "mac_template.json"
+    tpl = ROOT / "model_profiling" / "configs" / "templates" / "mac_template.json"
     data = _load(tpl)
     assert "model" in data
     assert "output_root" in data
@@ -23,7 +23,7 @@ def test_mac_template_has_required_fields() -> None:
 
 
 def test_android_template_has_required_fields() -> None:
-    tpl = ROOT / "configs" / "templates" / "android_template.json"
+    tpl = ROOT / "model_profiling" / "configs" / "templates" / "android_template.json"
     data = _load(tpl)
     assert "model" in data
     assert "output_root" in data
@@ -34,8 +34,8 @@ def test_android_template_has_required_fields() -> None:
 
 def test_example_config_is_valid_json() -> None:
     for ex in [
-        ROOT / "configs" / "examples" / "mac_mobilenet_fp16.json",
-        ROOT / "configs" / "examples" / "android_mobilenet_fp16.json",
+        ROOT / "model_profiling" / "configs" / "examples" / "mac_mobilenet_fp16.json",
+        ROOT / "model_profiling" / "configs" / "examples" / "android_mobilenet_fp16.json",
     ]:
         data = _load(ex)
         assert data["model"].endswith(".pte")

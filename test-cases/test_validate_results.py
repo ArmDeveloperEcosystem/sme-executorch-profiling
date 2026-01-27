@@ -27,7 +27,7 @@ def test_validate_results_passes_on_minimal_layout() -> None:
         (run_dir / "mac_sme2_on").mkdir(parents=True, exist_ok=True)
         (run_dir / "mac_sme2_on" / "x.etdump").write_text("dummy", encoding="utf-8")
 
-        p = run(["python", "scripts/validate_results.py", "--results", str(run_dir)])
+        p = run(["python", "model_profiling/scripts/validate_results.py", "--results", str(run_dir)])
         assert p.returncode == 0, p.stdout + "\n" + p.stderr
 
 
