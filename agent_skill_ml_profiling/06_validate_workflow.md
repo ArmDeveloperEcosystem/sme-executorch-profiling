@@ -1,11 +1,11 @@
 ---
 name: validate_workflow
-description: End-to-end smoke test to validate the complete profiling workflow. Runs setup, build, export, profiling, and analysis in a single command. Use for first-time validation, CI/CD pipelines, troubleshooting, or quick sanity checks after environment changes.
+description: End-to-end smoke test to validate the profiling workflow. Runs setup, build, export, profiling, and analysis in a single command. Use for first-time validation, CI/CD pipelines, troubleshooting, or quick sanity checks after environment changes.
 ---
 
 # Skill: Validate Workflow
 
-**Purpose**: End-to-end smoke test to validate the complete profiling workflow
+**Purpose**: End-to-end smoke test to validate the profiling workflow
 
 **When to use**: 
 - After initial setup (first-time validation)
@@ -16,7 +16,7 @@ description: End-to-end smoke test to validate the complete profiling workflow. 
 
 ## Overview
 
-This skill runs a **complete end-to-end validation** of the profiling workflow using a minimal toy model. It orchestrates all previous skills in sequence:
+This skill runs an end-to-end validation of the profiling workflow using a minimal toy model. It orchestrates all previous skills in sequence:
 
 1. Validates setup (or runs setup if needed)
 2. Builds runners (if not already built)
@@ -56,7 +56,7 @@ test -f model_profiling/out_toy_cnn/runs/mac/*/*.etdump && echo "✓ Profiling c
 test -f model_profiling/out_toy_cnn/runs/mac/*/*_all_runs_timeline.csv && echo "✓ CSV files generated"
 test -f model_profiling/out_toy_cnn/runs/mac/*_pipeline_summary.json && echo "✓ Pipeline summary generated"
 
-# Run comprehensive validation
+# Run validation
 python model_profiling/scripts/validate_setup.py
 python model_profiling/scripts/validate_results.py --results model_profiling/out_toy_cnn/runs/mac
 ```

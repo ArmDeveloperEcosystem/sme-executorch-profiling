@@ -1,10 +1,10 @@
 # SME2 ExecuTorch Profiling Kit
 
-A complete, self-contained profiling framework for analyzing ExecuTorch model performance with SME2 acceleration. This kit enables operator-level performance analysis to identify bottlenecks, measure SME2 acceleration impact, and make data-driven optimization decisions.
+A profiling framework for analyzing ExecuTorch model performance with SME2 acceleration. Provides operator-level performance analysis to identify bottlenecks and measure SME2 acceleration impact.
 
 ## What This Repository Includes
 
-This repository provides a **complete, runnable profiling framework** with:
+This repository provides a profiling framework with:
 
 - **Model Export Tools**: Export PyTorch models to ExecuTorch `.pte` format with XNNPACK backend delegation
 - **Profiling Pipeline**: Automated performance measurement pipeline for macOS and Android platforms
@@ -17,28 +17,28 @@ This repository provides a **complete, runnable profiling framework** with:
   - Operator-specific bottleneck analysis
   - Portable vs delegated operator identification
   - Kernel-level insights (SME2 vs standard kernels)
-- **Report Generation**: Comprehensive markdown reports with actionable insights
-- **Agent Skills**: Structured, verifiable automation skills for AI coding assistants
-  - 8 complete skills covering setup, build, export, profiling, analysis, and reporting
-  - Self-contained workflows that can be automated or run manually
+- **Report Generation**: Markdown reports with performance analysis
+- **Agent Skills**: Automation skills for AI coding assistants
+  - 8 skills covering setup, build, export, profiling, analysis, and reporting
+  - Workflows that can be automated or run manually
 - **Model Onboarding Scaffolding**: Framework for adding new models to the profiling workflow
 - **Example Models**: Reference implementations (toy_cnn, mobilenet_v3_small, EdgeTAM)
 
 ## What It Does
 
-This profiling kit helps you:
+This framework provides:
 
 1. **Export Models**: Convert PyTorch models to ExecuTorch `.pte` format with proper backend delegation
 2. **Measure Performance**: Run models with SME2 acceleration on and off to measure speedup
 3. **Analyze Bottlenecks**: Break down inference time by operator categories to identify where time is spent
 4. **Identify Optimization Opportunities**: Discover which operators benefit from SME2 and which become new bottlenecks (often data movement operations)
-5. **Generate Reports**: Create comprehensive reports with actionable insights for optimization
+5. **Generate Reports**: Create reports with performance analysis for optimization
 
-**Key Insight**: After SME2 accelerates CONV and GEMM operations (3-15× faster), data movement operations (transpose, reshape, layout conversions) often become the dominant bottleneck. This profiling kit makes this bottleneck shift visible, showing you exactly where to focus optimization efforts next.
+**Key Insight**: After SME2 accelerates CONV and GEMM operations (3-15× faster), data movement operations (transpose, reshape, layout conversions) often become the dominant bottleneck. This framework makes the bottleneck shift visible, showing where to focus optimization efforts.
 
 ## Learning Path (Optional)
 
-This code repository accompanies the [**Revealing latent ExecuTorch latency after SME2 acceleration**](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) learning path, which provides comprehensive documentation, step-by-step instructions, and detailed explanations of the performance analysis workflow.
+This code repository accompanies the [**Profiling ExecuTorch Models with SME2 on Arm**](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) learning path, which provides additional documentation and step-by-step instructions.
 
 ## Quick Start
 
@@ -88,11 +88,11 @@ This code repository accompanies the [**Revealing latent ExecuTorch latency afte
    python model_profiling/scripts/analyze_results.py \
      --run-dir out_<model>/runs/mac
    
-   # Generate comprehensive markdown report (base report)
+   # Generate markdown report (base report)
    python model_profiling/scripts/generate_report.py \
      --run-dir out_<model>/runs/mac
    
-   # For actionable insights: Operator-specific bottleneck analysis
+   # Operator-specific bottleneck analysis
    python model_profiling/tools/analyze_etdump_csv.py \
      --timeline-csv out_<model>/runs/mac/<experiment>/*_all_runs_timeline.csv \
      --compare out_<model>/runs/mac/<experiment_off>/*_all_runs_timeline.csv \
@@ -102,11 +102,11 @@ This code repository accompanies the [**Revealing latent ExecuTorch latency afte
      --verbose
    ```
    
-   **Note**: The base report shows category-level breakdown. For **actionable insights** (operator-level bottlenecks, portable vs delegated analysis), use `analyze_etdump_csv.py`. See agent skill `07_report_generation.md` for complete workflow.
+   **Note**: The base report shows category-level breakdown. For operator-level bottlenecks and portable vs delegated analysis, use `analyze_etdump_csv.py`. See agent skill `07_report_generation.md` for the workflow.
 
 ## Agent Skills for Automation
 
-This repository includes **structured, verifiable agent skills** in `agent_skill_ml_profiling/` that enable AI coding assistants (Claude, Cursor, Copilot, etc.) and CI pipelines to automate the profiling workflow.
+This repository includes agent skills in `agent_skill_ml_profiling/` for AI coding assistants (Claude, Cursor, Copilot, etc.) and CI pipelines to automate the profiling workflow.
 
 **What are agent skills?** These are self-contained automation playbooks with:
 - Clear prerequisites and verification steps
@@ -121,7 +121,7 @@ This repository includes **structured, verifiable agent skills** in `agent_skill
 4. `04_run_profiling.md` - Execute profiling pipeline (~10 min)
 5. `05_analyze_results.md` - Generate operator-category breakdown (~2 min)
 6. `06_validate_workflow.md` - End-to-end smoke test (~15 min)
-7. `07_report_generation.md` - Generate comprehensive markdown report (~1 min)
+7. `07_report_generation.md` - Generate markdown report (~1 min)
 8. `08_onboard_edgetam.md` - Onboard EdgeTAM image encoder model (~5 min)
 
 **Quick Start with Agent Skills**:
@@ -129,7 +129,7 @@ This repository includes **structured, verifiable agent skills** in `agent_skill
 - **For developers**: Use skills as step-by-step playbooks (run commands sequentially, verify each step)
 - **For CI/CD**: Chain skills together for automated regression testing
 
-See [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) for the complete skill catalog and usage patterns.
+See [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) for the skill catalog and usage patterns.
 
 ## Repository Structure
 
@@ -139,7 +139,7 @@ See [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) f
 - `model_profiling/configs/` - Configuration templates and examples
 - `model_profiling/tools/` - Analysis tools (ETDump to CSV, bottleneck analysis)
 - `model_profiling/pipeline/` - Core pipeline orchestration code
-- `agent_skill_ml_profiling/` - Agent skills for automation (8 complete skills)
+- `agent_skill_ml_profiling/` - Agent skills for automation (8 skills)
 - `out_<model>/artifacts/` - Exported `.pte` files (created during export)
 - `out_<model>/runs/` - Profiling results (created during pipeline runs)
 
@@ -153,7 +153,7 @@ The profiling pipeline is **model-agnostic** - once you export a `.pte` file, th
 
 You have two options for detailed onboarding instructions:
 
-1. **Agent Skill** (recommended for step-by-step automation): See `agent_skill_ml_profiling/08_onboard_edgetam.md` for a complete EdgeTAM onboarding example that demonstrates:
+1. **Agent Skill** (recommended for step-by-step automation): See `agent_skill_ml_profiling/08_onboard_edgetam.md` for an EdgeTAM onboarding example that demonstrates:
    - Wrapper classes for input/output normalization
    - Operator replacement strategies
    - Shape constraint handling
@@ -161,7 +161,7 @@ You have two options for detailed onboarding instructions:
    
    **Note**: EdgeTAM is a third-party open source project. When cloning EdgeTAM, you must maintain all copyright notices and comply with EdgeTAM's license terms. See the onboarding skill for details.
 
-2. **Learning Path** (for comprehensive context): See the [learning path documentation](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) for detailed onboarding instructions, tutorials, and best practices.
+2. **Learning Path**: See the [learning path documentation](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) for onboarding instructions and tutorials.
 
 ### Quick Onboarding Steps
 
@@ -190,15 +190,15 @@ The pipeline automatically handles analysis and report generation - no model-spe
 
 ### In This Repository
 
-- **Agent Skills**: [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) - Complete catalog of automation skills
+- **Agent Skills**: [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) - Catalog of automation skills
 - **Command Reference**: [`model_profiling/pipeline_commands.md`](model_profiling/pipeline_commands.md) - Detailed workflow commands
 - **Scripts Overview**: [`model_profiling/scripts/readme.md`](model_profiling/scripts/readme.md) - Script documentation
-- **Report Generation**: [`agent_skill_ml_profiling/07_report_generation.md`](agent_skill_ml_profiling/07_report_generation.md) - Complete workflow for generating comprehensive reports with operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
+- **Report Generation**: [`agent_skill_ml_profiling/07_report_generation.md`](agent_skill_ml_profiling/07_report_generation.md) - Workflow for generating reports with operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
 - **Model Onboarding**: [`agent_skill_ml_profiling/08_onboard_edgetam.md`](agent_skill_ml_profiling/08_onboard_edgetam.md) - Step-by-step EdgeTAM onboarding example
 
 ### External Resources
 
-- **Learning Path**: [Revealing latent ExecuTorch latency after SME2 acceleration](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) - Comprehensive documentation, tutorials, and best practices (optional - this repository is self-contained)
+- **Learning Path**: [Profiling ExecuTorch Models with SME2 on Arm](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) - Additional documentation and tutorials (optional - this repository is self-contained)
 
 ## License
 

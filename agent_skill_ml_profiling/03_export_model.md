@@ -152,7 +152,7 @@ python model_profiling/scripts/validate_setup.py --model "$PTE_FILE"
 | **Missing dependencies** | Import errors | Ensure ExecuTorch is properly installed: `python -c "import executorch"` |
 | **Backend errors** | XNNPACK partitioner failures | Check submodules initialized, verify ExecuTorch build |
 
-## Model Onboarding (Advanced)
+## Model Onboarding
 
 To add a new model:
 

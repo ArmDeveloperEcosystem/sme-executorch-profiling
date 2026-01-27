@@ -15,7 +15,7 @@ description: Build ExecuTorch runner binaries with SME2-on and SME2-off variants
 
 ## Overview
 
-This skill builds the `executor_runner` binaries that execute `.pte` models. You need **two variants** for complete profiling:
+This skill builds the `executor_runner` binaries that execute `.pte` models. You need **two variants** for profiling:
 
 1. **Timing-only runners** (default): No trace logging overhead → accurate latency measurements
 2. **Trace-enabled runners** (optional): XNNPACK kernel trace logging → kernel-level insights (logging impacts timing)
@@ -92,7 +92,7 @@ executorch/cmake-out/android-arm64-v9a/executor_runner --help | head -5
 # Test macOS runner (developer accessibility)
 executorch/cmake-out/mac-arm64/executor_runner --help | head -5
 
-# Run comprehensive validation
+# Run validation
 python model_profiling/scripts/validate_setup.py
 ```
 

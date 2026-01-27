@@ -152,7 +152,7 @@ Compare `category_totals_ms` between SME2-on and SME2-off experiments:
 | **Empty results** | No timing data | Verify ETDump files contain events, check runner was built with event tracer enabled |
 | **File not found** | Model .pte missing | Verify model path is correct, file exists |
 
-## Kernel-Level Insights (Advanced)
+## Kernel-Level Insights
 
 If you ran trace-enabled profiling runs, the analysis may include kernel hints:
 - `__neonsme2` → SME2 kernel used

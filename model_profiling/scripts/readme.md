@@ -1,6 +1,6 @@
 # Profiling kit scripts (SME2 + ExecuTorch)
 
-These scripts are a **self-contained profiling kit** that lives alongside the learning path.
+These scripts are a profiling kit that lives alongside the learning path.
 
 ## Expected directory layout
 
@@ -66,11 +66,11 @@ cp model_profiling/configs/templates/mac_template.json \
 python3 model_profiling/scripts/mac_pipeline.py \
   --config model_profiling/configs/mac_mobilenet.json
 
-# 7. Generate comprehensive report (base report with latency + category breakdown)
+# 7. Generate report (base report with latency + category breakdown)
 python3 model_profiling/scripts/generate_report.py \
   --run-dir out_mobilenet/runs/mac
 
-# 7a. For actionable insights: Operator-specific bottleneck analysis (CRITICAL)
+# 7a. Operator-specific bottleneck analysis
 #     Identifies top operators by E2E weight, portable vs delegated operators
 python3 model_profiling/tools/analyze_etdump_csv.py \
   --timeline-csv out_mobilenet/runs/mac/mac_sme2_on/*_all_runs_timeline.csv \
@@ -109,7 +109,7 @@ python3 model_profiling/scripts/android_pipeline.py \
 python3 model_profiling/scripts/generate_report.py \
   --run-dir out_<model>/runs/android
 
-# For actionable insights: Operator-specific bottleneck analysis
+# Operator-specific bottleneck analysis
 python3 model_profiling/tools/analyze_etdump_csv.py \
   --timeline-csv out_<model>/runs/android/android_sme2_on/*_all_runs_timeline.csv \
   --compare out_<model>/runs/android/android_sme2_off/*_all_runs_timeline.csv \
@@ -130,5 +130,5 @@ python3 model_profiling/tools/analyze_etdump_csv.py \
 
 - **Command reference**: See `pipeline_commands.md` for detailed workflow
 - **Model onboarding**: See learning path documentation for adding new models
-- **Comprehensive report generation**: See agent skill `agent_skill_ml_profiling/07_report_generation.md` for complete workflow including operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
+- **Report generation**: See agent skill `agent_skill_ml_profiling/07_report_generation.md` for workflow including operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
 

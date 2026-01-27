@@ -11,7 +11,7 @@ description: Execute profiling runs with SME2-on and SME2-off, collect ETDump tr
 
 ## Overview
 
-This skill orchestrates the profiling pipeline to collect performance data. **Critical distinction**: You need **two types of runs** for complete profiling:
+This skill orchestrates the profiling pipeline to collect performance data. **Note**: You need **two types of runs** for profiling:
 
 1. **Timing-only runs** (default): Accurate latency measurements without trace overhead
 2. **Trace-enabled runs** (separate): Kernel-level insights (trace logging impacts timing, use only for kernel analysis)

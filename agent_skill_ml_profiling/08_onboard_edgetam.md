@@ -5,17 +5,17 @@ description: "Onboard EdgeTAM image encoder module for profiling. Clones EdgeTAM
 
 # Skill: Onboard EdgeTAM Image Encoder
 
-**Purpose**: Onboard EdgeTAM image encoder model for profiling by cloning the repository and setting up the model wrapper. **Note**: EdgeTAM is a full video segmentation model with multiple modules (image encoder, memory encoder, decoder, etc.). This skill onboards only the **image encoder module** for simplicity and to demonstrate advanced model onboarding patterns. Other EdgeTAM modules would require separate extraction and onboarding if needed.
+**Purpose**: Onboard EdgeTAM image encoder model for profiling by cloning the repository and setting up the model wrapper. **Note**: EdgeTAM is a full video segmentation model with multiple modules (image encoder, memory encoder, decoder, etc.). This skill onboards only the **image encoder module** for simplicity and to demonstrate model onboarding patterns. Other EdgeTAM modules would require separate extraction and onboarding if needed.
 
 **When to use**: 
 - When adding EdgeTAM image encoder to the profiling workflow
 - When setting up EdgeTAM image encoder for ExecuTorch export
 - When onboarding EdgeTAM image encoder as a new model to the local registry
-- When learning advanced model onboarding patterns (module extraction, wrapper creation)
+- When learning model onboarding patterns (module extraction, wrapper creation)
 
 ## Overview
 
-This skill onboards the EdgeTAM (On-Device Track Anything Model) **image encoder module** for profiling. EdgeTAM is a full video segmentation model with multiple modules (image encoder, memory encoder, decoder, etc.). This skill focuses on the image encoder module only for simplicity and to demonstrate advanced model onboarding patterns. Other EdgeTAM modules would require separate extraction and onboarding if needed.
+This skill onboards the EdgeTAM (On-Device Track Anything Model) **image encoder module** for profiling. EdgeTAM is a full video segmentation model with multiple modules (image encoder, memory encoder, decoder, etc.). This skill focuses on the image encoder module only for simplicity and to demonstrate model onboarding patterns. Other EdgeTAM modules would require separate extraction and onboarding if needed.
 
 The process involves:
 

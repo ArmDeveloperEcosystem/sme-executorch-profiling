@@ -15,7 +15,7 @@ description: Initialize the ExecuTorch profiling environment with all dependenci
 
 ## Overview
 
-This skill sets up a complete, isolated profiling environment. It creates a Python virtual environment, clones/updates the ExecuTorch repository, initializes all git submodules (critical for XNNPACK, KleidiAI), and installs ExecuTorch in editable mode so export tools and devtools work.
+This skill sets up an isolated profiling environment. It creates a Python virtual environment, clones/updates the ExecuTorch repository, initializes all git submodules (critical for XNNPACK, KleidiAI), and installs ExecuTorch in editable mode so export tools and devtools work.
 
 **Key outputs**: `.venv/` (Python environment) and `executorch/` (source code with submodules). The `executorch/` directory name **cannot be changed** - CMake requires it.
 
@@ -69,7 +69,7 @@ ls -d executorch/
 # Verify submodules initialized (critical for XNNPACK backend)
 ls -d executorch/backends/xnnpack/third-party/XNNPACK
 
-# Run comprehensive validation
+# Run validation
 python model_profiling/scripts/validate_setup.py
 ```
 

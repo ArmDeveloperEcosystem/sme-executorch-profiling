@@ -5,9 +5,9 @@ draft: false
 
 # Agent Skills for ML Profiling
 
-These are **structured, verifiable agent skills** for AI coding assistants (Claude, Codex, Cursor, Copilot) to automate SME2 ExecuTorch profiling workflows.
+These are agent skills for AI coding assistants (Claude, Codex, Cursor, Copilot) to automate SME2 ExecuTorch profiling workflows.
 
-**Format**: Based on [claudekit-skills](https://github.com/mrgoonie/claudekit-skills) best practices with enhanced verification, decision matrices, and implementation checklists.
+**Format**: Based on [claudekit-skills](https://github.com/mrgoonie/claudekit-skills) with verification, decision matrices, and implementation checklists.
 
 ## Skill Format
 
@@ -42,7 +42,7 @@ description: What the skill does and when Claude should use it
 4. **[04_run_profiling.md](04_run_profiling.md)** - Execute profiling pipeline (timing + trace)
 5. **[05_analyze_results.md](05_analyze_results.md)** - Generate operator-category breakdown
 6. **[06_validate_workflow.md](06_validate_workflow.md)** - End-to-end smoke test
-7. **[07_report_generation.md](07_report_generation.md)** - Generate comprehensive markdown report
+7. **[07_report_generation.md](07_report_generation.md)** - Generate markdown report
 8. **[08_onboard_edgetam.md](08_onboard_edgetam.md)** - Onboard EdgeTAM image encoder model
 
 ## Usage Pattern
