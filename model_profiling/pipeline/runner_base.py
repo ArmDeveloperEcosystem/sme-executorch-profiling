@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -28,6 +29,16 @@ class BaseRunner:
     def resolve_runner_path(self, runner_path: Path) -> Path:
         if runner_path.is_absolute():
             return runner_path
+        env_executorch_dir = os.environ.get("EXECUTORCH_DIR")
+        if env_executorch_dir:
+            parts = runner_path.parts
+            if parts and parts[0] == "executorch":
+                env_runner = Path(env_executorch_dir).expanduser().joinpath(*parts[1:])
+                if env_runner.exists():
+                    return env_runner
+            env_runner = Path(env_executorch_dir).expanduser() / runner_path
+            if env_runner.exists():
+                return env_runner
         repo_root = Path.cwd()
         executorch_runner = repo_root / "executorch" / runner_path
         if executorch_runner.exists():

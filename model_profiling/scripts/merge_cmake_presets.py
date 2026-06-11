@@ -10,6 +10,7 @@ This script:
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -62,7 +63,7 @@ def merge_presets(base_presets: list, new_presets: list, preset_type: str) -> li
 def main():
     script_dir = Path(__file__).resolve().parent
     root_dir = script_dir.parent.parent  # executorch_sme2_kit/
-    executorch_dir = root_dir / "executorch"
+    executorch_dir = Path(os.environ.get("EXECUTORCH_DIR", root_dir / "executorch")).expanduser()
     assets_dir = root_dir / "model_profiling" / "assets"
     
     executorch_presets_file = executorch_dir / "CMakePresets.json"

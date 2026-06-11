@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-EXECUTORCH_DIR="${ROOT_DIR}/executorch"
+EXECUTORCH_DIR="${EXECUTORCH_DIR:-${ROOT_DIR}/executorch}"
+BUILD_XNNTRACE_RUNNERS="${BUILD_XNNTRACE_RUNNERS:-1}"
 
 on_err() {
   echo "ERROR: build_runners.sh failed at: ${BASH_COMMAND}" >&2
@@ -57,9 +58,23 @@ echo "Building mac-arm64-sme2-off runner (SME2 OFF)..."
 cmake --preset mac-arm64-sme2-off -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
 cmake --build --preset build-mac-arm64-sme2-off --target executor_runner
 
+if [[ "${BUILD_XNNTRACE_RUNNERS}" == "1" ]]; then
+  echo "Building mac-arm64-xnnlog runner (SME2 ON, XNNPACK trace)..."
+  cmake --preset mac-arm64-xnnlog -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
+  cmake --build --preset build-mac-arm64-xnnlog --target executor_runner
+
+  echo "Building mac-arm64-sme2-off-xnnlog runner (SME2 OFF, XNNPACK trace)..."
+  cmake --preset mac-arm64-sme2-off-xnnlog -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
+  cmake --build --preset build-mac-arm64-sme2-off-xnnlog --target executor_runner
+fi
+
 echo "Mac runners built:"
 echo "  ${EXECUTORCH_DIR}/cmake-out/mac-arm64/executor_runner"
 echo "  ${EXECUTORCH_DIR}/cmake-out/mac-arm64-sme2-off/executor_runner"
+if [[ "${BUILD_XNNTRACE_RUNNERS}" == "1" ]]; then
+  echo "  ${EXECUTORCH_DIR}/cmake-out/mac-arm64-xnnlog/executor_runner"
+  echo "  ${EXECUTORCH_DIR}/cmake-out/mac-arm64-sme2-off-xnnlog/executor_runner"
+fi
 
 # Build Android runners (optional)
 if [[ -z "${ANDROID_NDK:-}" && -z "${ANDROID_NDK_HOME:-}" ]]; then
@@ -85,6 +100,16 @@ echo "Building android-arm64-v9a-sme2-off runner (SME2 OFF)..."
 cmake --preset android-arm64-v9a-sme2-off -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
 cmake --build --preset build-android-arm64-v9a-sme2-off --target executor_runner
 
+if [[ "${BUILD_XNNTRACE_RUNNERS}" == "1" ]]; then
+  echo "Building android-arm64-v9a-xnnlog runner (SME2 ON, XNNPACK trace)..."
+  cmake --preset android-arm64-v9a-xnnlog -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
+  cmake --build --preset build-android-arm64-v9a-xnnlog --target executor_runner
+
+  echo "Building android-arm64-v9a-sme2-off-xnnlog runner (SME2 OFF, XNNPACK trace)..."
+  cmake --preset android-arm64-v9a-sme2-off-xnnlog -DPython3_EXECUTABLE="${Python3_EXECUTABLE}" -DPYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}"
+  cmake --build --preset build-android-arm64-v9a-sme2-off-xnnlog --target executor_runner
+fi
+
 # Copy libc++_shared.so if available (for Android device deployment)
 PREBUILT_ROOT="${ANDROID_NDK}/toolchains/llvm/prebuilt"
 HOST_PREBUILT="$(ls -d "${PREBUILT_ROOT}/"* 2>/dev/null | head -1 || true)"
@@ -93,9 +118,17 @@ if [[ -n "${HOST_PREBUILT}" ]]; then
   if [[ -f "${LIBCXX_SHARED}" ]]; then
     cp -f "${LIBCXX_SHARED}" "${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a/libc++_shared.so"
     cp -f "${LIBCXX_SHARED}" "${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a-sme2-off/libc++_shared.so"
+    if [[ "${BUILD_XNNTRACE_RUNNERS}" == "1" ]]; then
+      cp -f "${LIBCXX_SHARED}" "${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a-xnnlog/libc++_shared.so"
+      cp -f "${LIBCXX_SHARED}" "${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a-sme2-off-xnnlog/libc++_shared.so"
+    fi
   fi
 fi
 
 echo "Android runners built:"
 echo "  ${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a/executor_runner"
 echo "  ${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a-sme2-off/executor_runner"
+if [[ "${BUILD_XNNTRACE_RUNNERS}" == "1" ]]; then
+  echo "  ${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a-xnnlog/executor_runner"
+  echo "  ${EXECUTORCH_DIR}/cmake-out/android-arm64-v9a-sme2-off-xnnlog/executor_runner"
+fi

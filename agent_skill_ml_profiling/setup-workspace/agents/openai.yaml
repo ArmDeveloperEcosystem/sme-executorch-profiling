@@ -1,0 +1,6 @@
+interface:
+  display_name: "Setup Workspace"
+  short_description: "Prepare or link a pinned ExecuTorch workspace"
+  default_prompt: "Use $setup-workspace to prepare this repository, link or clone ExecuTorch, and validate pin compatibility."
+policy:
+  allow_implicit_invocation: true

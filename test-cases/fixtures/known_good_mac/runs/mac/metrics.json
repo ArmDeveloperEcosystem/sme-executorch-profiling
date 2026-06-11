@@ -1,7 +1,14 @@
 {
+  "schema_version": 1,
+  "generated_at": "2025-12-20T00:00:00Z",
+  "model": "models/mobilenet_v3_small_fp16.pte",
   "results": [
     {
       "experiment": "mac_sme2_on",
+      "mode": "timing",
+      "threads": 1,
+      "runs": 3,
+      "warmup": 1,
       "metrics": {
         "runs": 3,
         "threads": 1,
@@ -12,14 +19,26 @@
         ],
         "median_ms": 12.2,
         "min_ms": 12.1,
-        "max_ms": 12.3,
-        "etdump": "mac_sme2_on/mac_sme2_on_t1.etdump",
-        "log": "mac_sme2_on/mac_sme2_on_t1.log",
-        "etdump_rel": "mac_sme2_on/mac_sme2_on_t1.etdump",
-        "log_rel": "mac_sme2_on/mac_sme2_on_t1.log"
+        "max_ms": 12.3
+      },
+      "artifact_refs": {
+        "etdump": {
+          "path": "mac_sme2_on/mac_sme2_on_t1.etdump",
+          "relative_path": "mac_sme2_on/mac_sme2_on_t1.etdump",
+          "exists": true
+        },
+        "timeline_all": {
+          "path": "mac_sme2_on/mac_sme2_on_t1_exec_all_runs_timeline.csv",
+          "relative_path": "mac_sme2_on/mac_sme2_on_t1_exec_all_runs_timeline.csv",
+          "exists": true
+        },
+        "robust_stats": {
+          "path": "mac_sme2_on/mac_sme2_on_t1_exec_all_runs_timeline_robust_stats.json",
+          "relative_path": "mac_sme2_on/mac_sme2_on_t1_exec_all_runs_timeline_robust_stats.json",
+          "exists": true
+        }
       }
     }
   ]
 }
-
 

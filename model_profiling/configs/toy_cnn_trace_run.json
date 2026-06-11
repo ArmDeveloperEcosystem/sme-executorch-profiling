@@ -1,0 +1,29 @@
+{
+  "model": "model_profiling/out_toy_cnn/artifacts/toy_cnn_xnnpack_fp16.pte",
+  "output_root": "model_profiling/out_toy_cnn/runs/mac_trace",
+  "experiments": [
+    {
+      "name": "mac_sme2_on_trace",
+      "runner_path": "executorch/cmake-out/mac-arm64-xnnlog/executor_runner",
+      "mode": "xnntrace",
+      "runs": 1,
+      "warmup": 0,
+      "threads": [
+        1
+      ]
+    },
+    {
+      "name": "mac_sme2_off_trace",
+      "runner_path": "executorch/cmake-out/mac-arm64-sme2-off-xnnlog/executor_runner",
+      "mode": "xnntrace",
+      "runs": 1,
+      "warmup": 0,
+      "threads": [
+        1
+      ]
+    }
+  ],
+  "analysis": {
+    "compare_pairs": []
+  }
+}

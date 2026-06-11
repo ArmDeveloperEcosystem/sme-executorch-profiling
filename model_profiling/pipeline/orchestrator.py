@@ -14,7 +14,10 @@
 
 from __future__ import annotations
 
+import csv
 import json
+import os
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -172,14 +175,44 @@ class PipelineOrchestrator:
         return None
 
     def _write_summary(self) -> None:
+        generated_at = datetime.now(timezone.utc).isoformat()
+        manifest_results = [self._manifest_result(row) for row in self.results]
+        metrics_results = [self._metrics_result(row) for row in self.results]
+        executorch_info = self._executorch_info()
         summary = {
+            "schema_version": 1,
             "model": str(self.config.model),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": generated_at,
             "output_root": str(self.output_root),
+            "config": str(self.config.config_path) if self.config.config_path else None,
+            "executorch": executorch_info,
             "runs": self.results,
         }
         json_path = self.output_root / f"{self.config.model.stem}_pipeline_summary.json"
         json_path.write_text(json.dumps(summary, indent=2))
+
+        manifest = {
+            "schema_version": 1,
+            "generated_at": generated_at,
+            "config": str(self.config.config_path) if self.config.config_path else None,
+            "model": str(self.config.model),
+            "output_root": str(self.output_root),
+            "executorch": executorch_info,
+            "results": manifest_results,
+        }
+        (self.output_root / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+        (self.output_root / "metrics.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "generated_at": generated_at,
+                    "model": str(self.config.model),
+                    "results": metrics_results,
+                },
+                indent=2,
+            )
+            + "\n"
+        )
 
         lines = [
             f"# Pipeline Summary – {self.config.model.stem}",
@@ -219,6 +252,149 @@ class PipelineOrchestrator:
             lines.append("")
         md_path = self.output_root / f"{self.config.model.stem}_pipeline_summary.md"
         md_path.write_text("\n".join(lines))
+
+    def _manifest_result(self, row: Dict) -> Dict:
+        return {
+            "experiment": row.get("experiment"),
+            "mode": row.get("mode"),
+            "status": row.get("status"),
+            "threads": row.get("threads"),
+            "runs": row.get("runs"),
+            "warmup": row.get("warmup"),
+            "artifacts": self._artifact_paths(row),
+        }
+
+    def _metrics_result(self, row: Dict) -> Dict:
+        return {
+            "experiment": row.get("experiment"),
+            "mode": row.get("mode"),
+            "threads": row.get("threads"),
+            "runs": row.get("runs"),
+            "warmup": row.get("warmup"),
+            "metrics": self._metric_values(row),
+            "artifact_refs": self._artifact_paths(row),
+        }
+
+    def _metric_values(self, row: Dict) -> Dict:
+        metrics = {
+            "runs": row.get("runs"),
+            "threads": row.get("threads"),
+        }
+        row_metrics = row.get("metrics", {})
+        robust_stats_path = row_metrics.get("robust_stats_path")
+        if robust_stats_path:
+            path = Path(robust_stats_path)
+            if path.exists():
+                try:
+                    robust = json.loads(path.read_text())
+                    metrics["latency_ms"] = robust.get("latencies_ms", [])
+                    for key in ("median_ms", "mean_ms", "min_ms", "max_ms", "cv_percent"):
+                        if key in robust:
+                            metrics[key] = robust[key]
+                except Exception:
+                    pass
+        for key in ("median_ms", "mean_ms", "cv_percent"):
+            if key in row_metrics:
+                metrics.setdefault(key, row_metrics[key])
+
+        kernel_csv = row.get("paths", {}).get("kernel_csv")
+        if kernel_csv:
+            path = Path(kernel_csv)
+            if path.exists():
+                try:
+                    with path.open(newline="", encoding="utf-8") as f:
+                        rows = list(csv.DictReader(f))
+                    metrics["kernel_rows"] = len(rows)
+                    metrics["sme_kernel_rows"] = sum(1 for item in rows if item.get("has_sme") == "1")
+                    metrics["sme2_kernel_rows"] = sum(1 for item in rows if item.get("has_sme2") == "1")
+                    metrics["sme2_kernel_calls"] = sum(
+                        int(item.get("count") or 0) for item in rows if item.get("has_sme2") == "1"
+                    )
+                except Exception:
+                    pass
+        return metrics
+
+    def _artifact_paths(self, row: Dict) -> Dict:
+        artifacts = {}
+        paths = row.get("paths", {})
+        path_keys = {
+            "etdump": "etdump",
+            "latency_log": "log",
+            "timeline_all": "timeline_all",
+            "timeline_run0": "timeline_run0",
+            "xnntrace_log": "xnntrace_log",
+            "kernel_csv": "kernel_csv",
+        }
+        for source_key, output_key in path_keys.items():
+            value = paths.get(source_key)
+            if not value:
+                continue
+            path = Path(value)
+            if not path.exists():
+                continue
+            artifacts[output_key] = self._artifact_ref(path)
+
+        robust_stats_path = row.get("metrics", {}).get("robust_stats_path")
+        if robust_stats_path:
+            path = Path(robust_stats_path)
+            if path.exists():
+                artifacts["robust_stats"] = self._artifact_ref(path)
+        return artifacts
+
+    def _artifact_ref(self, path: Path) -> Dict:
+        ref = {
+            "path": str(path),
+            "exists": path.exists(),
+        }
+        try:
+            ref["relative_path"] = str(path.resolve().relative_to(self.output_root.resolve()))
+        except ValueError:
+            ref["relative_path"] = str(path)
+        return ref
+
+    def _expected_executorch_sha(self) -> Optional[str]:
+        pin_file = Path.cwd() / "model_profiling" / "assets" / "executorch_commit.txt"
+        if not pin_file.exists():
+            return None
+        value = pin_file.read_text(encoding="utf-8").strip()
+        return value or None
+
+    def _executorch_info(self) -> Dict:
+        executorch_dir = Path(os.environ.get("EXECUTORCH_DIR", Path.cwd() / "executorch")).expanduser()
+        expected_sha = self._expected_executorch_sha()
+        info = {
+            "present": executorch_dir.exists(),
+            "expected_sha": expected_sha,
+            "actual_sha": None,
+            "compatible": None,
+            "dirty": None,
+            "patches_required": False,
+        }
+        if not executorch_dir.exists():
+            return info
+        try:
+            info["actual_sha"] = subprocess.check_output(
+                ["git", "-C", str(executorch_dir), "rev-parse", "HEAD"],
+                text=True,
+                stderr=subprocess.DEVNULL,
+            ).strip()
+            info["compatible"] = expected_sha is None or info["actual_sha"] == expected_sha
+        except Exception:
+            pass
+        dirty = False
+        for cmd in (
+            ["git", "-C", str(executorch_dir), "diff", "--quiet"],
+            ["git", "-C", str(executorch_dir), "diff", "--cached", "--quiet"],
+        ):
+            try:
+                subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError:
+                dirty = True
+            except Exception:
+                info["dirty"] = None
+                return info
+        info["dirty"] = dirty
+        return info
 
     def _generate_kernel_views(self) -> None:
         """Generate kernel view tables comparing SME2-On vs SME2-Off."""

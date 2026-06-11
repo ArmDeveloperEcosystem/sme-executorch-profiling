@@ -12,7 +12,7 @@ cd executorch_sme2_kit/
 
 The scripts will create (or reuse):
 - `.venv/` Python virtual environment
-- `executorch/` ExecuTorch checkout (tracks `main`)
+- `executorch/` ExecuTorch checkout (defaults to the pinned ref in `model_profiling/assets/executorch_commit.txt`)
 - `executorch/cmake-out/` built `executor_runner` binaries (runners stay with their ExecuTorch version for traceability)
 - `out_<model>/artifacts/` exported `.pte` and `.etrecord` files
 - `model_profiling/configs/` JSON pipeline configs
@@ -38,10 +38,38 @@ python model_profiling/scripts/run_quick_test.py
 
 This runs the full workflow (validate → build → export toy model → pipeline → validate results) in **~10–15 minutes** and confirms your setup works.
 
+## ExecuTorch setup choices
+
+Fresh setup, only when `EXECUTORCH_REPO_URL` points at a repository containing the checked-in pin:
+
+```bash
+bash model_profiling/scripts/setup_repo.sh
+```
+
+Reuse an existing ExecuTorch checkout:
+
+```bash
+export EXECUTORCH_DIR=/path/to/executorch
+bash model_profiling/scripts/setup_repo.sh
+```
+
+By default, setup and validation expect the pinned ExecuTorch commit in `model_profiling/assets/executorch_commit.txt`, no tracked local ExecuTorch/XNNPACK patches, and matching submodules. The setup script initializes submodules for an existing checkout. The public toy/demo workflow does not require ET or XNNPACK patches. If you intentionally use a local patched checkout, record that in your report and opt in with the relevant `SME2_EXECUTORCH_ALLOW_*` environment variable or `validate_setup.py --allow-*` option.
+
+Pre-check an existing checkout before setup:
+
+```bash
+python model_profiling/scripts/validate_setup.py \
+  --executorch-dir /path/to/executorch \
+  --skip-venv \
+  --skip-submodules \
+  --skip-runners
+```
+
 ## Quick flow (manual, step-by-step)
 
 ```bash
 # 1. Setup (one-time)
+export EXECUTORCH_DIR=/path/to/executorch
 bash model_profiling/scripts/setup_repo.sh
 
 # 2. Build runners (one-time, or when CMake configs change)
@@ -49,6 +77,9 @@ bash model_profiling/scripts/build_runners.sh
 
 # 3. Activate venv
 source .venv/bin/activate
+
+# 3a. Validate setup, including timing and XNNPACK trace runners
+python model_profiling/scripts/validate_setup.py --require-xnntrace-runners
 
 # 4. Export model
 python model_profiling/export/export_model.py \
@@ -84,6 +115,19 @@ python3 model_profiling/tools/analyze_etdump_csv.py \
 python3 model_profiling/scripts/validate_results.py \
   --results out_mobilenet/runs/mac
 ```
+
+For kernel-selection evidence, run XNNPACK trace separately from timing:
+
+```bash
+python3 model_profiling/scripts/mac_pipeline.py \
+  --config model_profiling/configs/toy_cnn_trace_run.json
+
+python3 model_profiling/scripts/validate_results.py \
+  --results model_profiling/out_toy_cnn/runs/mac_trace \
+  --require-sme2-kernels
+```
+
+`manifest.json` is the provenance and artifact index. `metrics.json` contains measurement values plus artifact references.
 
 **See `pipeline_commands.md` for detailed command reference.**
 
@@ -130,5 +174,4 @@ python3 model_profiling/tools/analyze_etdump_csv.py \
 
 - **Command reference**: See `pipeline_commands.md` for detailed workflow
 - **Model onboarding**: See learning path documentation for adding new models
-- **Report generation**: See agent skill `agent_skill_ml_profiling/07_report_generation.md` for workflow including operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
-
+- **Report generation**: See agent skill `agent_skill_ml_profiling/generate-report/SKILL.md` for workflow including operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights

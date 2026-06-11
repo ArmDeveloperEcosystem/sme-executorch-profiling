@@ -1,0 +1,6 @@
+interface:
+  display_name: "Onboard EdgeTAM"
+  short_description: "Register the EdgeTAM image encoder for profiling"
+  default_prompt: "Use $onboard-edgetam-image-encoder to add and export the EdgeTAM image encoder."
+policy:
+  allow_implicit_invocation: true
