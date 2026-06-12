@@ -1,0 +1,6 @@
+interface:
+  display_name: "Validate Workflow"
+  short_description: "Run timing and SME2 trace smoke validation"
+  default_prompt: "Use $validate-workflow to run or audit the toy_cnn timing and XNNPACK SME2 kernel smoke tests."
+policy:
+  allow_implicit_invocation: true

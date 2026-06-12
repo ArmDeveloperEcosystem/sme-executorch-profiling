@@ -1,0 +1,6 @@
+interface:
+  display_name: "Analyze Results"
+  short_description: "Analyze ETDump, CSV, and kernel trace outputs"
+  default_prompt: "Use $analyze-results to regenerate and compare SME2 profiling analysis artifacts."
+policy:
+  allow_implicit_invocation: true

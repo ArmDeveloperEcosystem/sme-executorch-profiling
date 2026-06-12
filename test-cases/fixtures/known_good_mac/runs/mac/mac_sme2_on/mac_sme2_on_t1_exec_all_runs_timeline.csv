@@ -1,0 +1,4 @@
+run_index,name,duration_ms
+0,Method::execute,12.3
+1,Method::execute,12.1
+2,Method::execute,12.2

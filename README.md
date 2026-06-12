@@ -38,7 +38,15 @@ This framework provides:
 
 ## Learning Path (Optional)
 
-This code repository accompanies the [**Profiling ExecuTorch Models with SME2 on Arm**](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) learning path, which provides additional documentation and step-by-step instructions.
+This code repository accompanies the [**Profiling ExecuTorch Models with SME2 on Arm**](https://learn.arm.com/learning-paths/cross-platform/sme-executorch-profiling/) learning path, which provides additional documentation and step-by-step instructions.
+
+## Requirements
+
+- Arm macOS host for the local smoke workflow. SME2 kernel-selection proof on macOS requires SME2-capable Apple Silicon, such as Apple M4.
+- Python 3.9+, Git, CMake, Ninja, and Xcode Command Line Tools on macOS.
+- Network access to GitHub and Python package indexes for fresh setup.
+- Optional Android build: set `ANDROID_NDK` or `ANDROID_NDK_HOME` to an Android NDK containing `build/cmake/android.toolchain.cmake`. If neither variable is set, `build_runners.sh` builds macOS runners and skips Android.
+- Optional Android run: install Android platform-tools so `adb` is available, and use an Armv9 Android device with SME2 support to observe SME2 kernel deltas.
 
 ## Quick Start
 
@@ -49,22 +57,42 @@ This code repository accompanies the [**Profiling ExecuTorch Models with SME2 on
    ```
 
 2. **Set up ExecuTorch:**
+
+   Fresh setup, where the script clones the pinned public ExecuTorch ref:
    ```bash
    bash model_profiling/scripts/setup_repo.sh
    ```
+
+   Or reuse an existing ExecuTorch checkout:
+   ```bash
+   export EXECUTORCH_DIR=/path/to/executorch
+   bash model_profiling/scripts/setup_repo.sh
+   ```
+
+   Setup uses the pinned public ExecuTorch commit recorded in `model_profiling/assets/executorch_commit.txt`. When `EXECUTORCH_DIR` points to an existing checkout, setup links it into this repo as `./executorch`, initializes submodules, and installs it only if the checkout is at that commit or a clean descendant. Validation expects no local ET/XNNPACK patches for the public demo workflow.
+   The editable install disables optional MLX/CoreML/LLM/training CMake targets by default, and the runner presets keep unrelated LLM/training targets off, because this profiling flow validates XNNPACK execution and SME2 kernel selection.
 
 3. **Build runners:**
    ```bash
    bash model_profiling/scripts/build_runners.sh
    ```
+   If you reused an external ExecuTorch checkout, keep `EXECUTORCH_DIR` exported for build and profiling commands.
+   This builds timing runners and XNNPACK logging runners used for SME2 kernel-selection validation. Android runners are built only when `ANDROID_NDK` or `ANDROID_NDK_HOME` is set.
 
 4. **Activate venv and export a model:**
    ```bash
    source .venv/bin/activate
+   python model_profiling/scripts/validate_setup.py --require-xnntrace-runners
    python model_profiling/export/export_model.py \
      --model <model_name> \
      --dtype fp16 \
      --outdir out_<model>/artifacts/
+   ```
+   For Android runner validation, use:
+   ```bash
+   python model_profiling/scripts/validate_setup.py \
+     --require-xnntrace-runners \
+     --require-android-runners
    ```
 
 5. **Create config and run profiling pipeline:**
@@ -101,35 +129,45 @@ This code repository accompanies the [**Profiling ExecuTorch Models with SME2 on
      --output-dir out_<model>/runs/mac/ \
      --verbose
    ```
+
+   Validate timing output with `python model_profiling/scripts/validate_results.py --results out_<model>/runs/mac`. For the toy smoke workflow, validate XNNPACK SME2 kernel evidence separately with:
+   ```bash
+   python model_profiling/scripts/mac_pipeline.py \
+     --config model_profiling/configs/toy_cnn_trace_run.json
+   python model_profiling/scripts/validate_results.py \
+     --results model_profiling/out_toy_cnn/runs/mac_trace \
+     --require-sme2-kernels
+   ```
    
-   **Note**: The base report shows category-level breakdown. For operator-level bottlenecks and portable vs delegated analysis, use `analyze_etdump_csv.py`. See agent skill `07_report_generation.md` for the workflow.
+   **Note**: The base report shows category-level breakdown. For operator-level bottlenecks and portable vs delegated analysis, use `analyze_etdump_csv.py`. See the `generate-report` agent skill for the workflow.
 
 ## Agent Skills for Automation
 
-This repository includes agent skills in `agent_skill_ml_profiling/` for AI coding assistants (Claude, Cursor, Copilot, etc.) and CI pipelines to automate the profiling workflow.
+This repository includes agent skills in `agent_skill_ml_profiling/` for AI coding assistants (Codex, Claude, Cursor, Copilot, etc.) and CI pipelines to automate the profiling workflow.
 
-**What are agent skills?** These are self-contained automation playbooks with:
+**What are agent skills?** These are self-contained skill packages with:
 - Clear prerequisites and verification steps
 - Ordered, executable commands
 - Expected outputs and success criteria
 - Failure handling and troubleshooting guidance
+- `SKILL.md` frontmatter for agent discovery
 
 **Available Skills**:
-1. `01_setup_workspace.md` - Initialize profiling environment (~30 min)
-2. `02_build_runners.md` - Build SME2-on/off runner binaries (~20 min)
-3. `03_export_model.md` - Export PyTorch model to ExecuTorch .pte (~5 min)
-4. `04_run_profiling.md` - Execute profiling pipeline (~10 min)
-5. `05_analyze_results.md` - Generate operator-category breakdown (~2 min)
-6. `06_validate_workflow.md` - End-to-end smoke test (~15 min)
-7. `07_report_generation.md` - Generate markdown report (~1 min)
-8. `08_onboard_edgetam.md` - Onboard EdgeTAM image encoder model (~5 min)
+1. `setup-workspace` - Initialize profiling environment (~30 min)
+2. `build-runners` - Build SME2-on/off runner binaries (~20 min)
+3. `export-model` - Export PyTorch model to ExecuTorch .pte (~5 min)
+4. `run-profiling` - Execute profiling pipeline (~10 min)
+5. `analyze-results` - Generate operator-category breakdown (~2 min)
+6. `validate-workflow` - End-to-end smoke test (~15 min)
+7. `generate-report` - Generate Markdown report (~1 min)
+8. `onboard-edgetam-image-encoder` - Onboard EdgeTAM image encoder model (~5 min)
 
 **Quick Start with Agent Skills**:
-- **For AI assistants**: Reference skills by name when automating profiling tasks
+- **For AI assistants**: Load the canonical `agent_skill_ml_profiling/<skill-name>/SKILL.md` file
 - **For developers**: Use skills as step-by-step playbooks (run commands sequentially, verify each step)
 - **For CI/CD**: Chain skills together for automated regression testing
 
-See [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) for the skill catalog and usage patterns.
+The historical numbered files, such as `01_setup_workspace.md`, remain in place as public compatibility entry points for Learning Path links. See [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) for the catalog.
 
 ## Repository Structure
 
@@ -153,15 +191,15 @@ The profiling pipeline is **model-agnostic** - once you export a `.pte` file, th
 
 You have two options for detailed onboarding instructions:
 
-1. **Agent Skill** (recommended for step-by-step automation): See `agent_skill_ml_profiling/08_onboard_edgetam.md` for an EdgeTAM onboarding example that demonstrates:
-   - Wrapper classes for input/output normalization
-   - Operator replacement strategies
-   - Shape constraint handling
-   - Export-friendly refactoring patterns
+1. **Agent Skill** (recommended for step-by-step automation): See `agent_skill_ml_profiling/onboard-edgetam-image-encoder/SKILL.md` for an EdgeTAM onboarding workflow that demonstrates:
+   - Local model registry integration
+   - Third-party source and license handling
+   - Checkpoint and config validation
+   - Export-friendly wrapper shape and signature control
    
    **Note**: EdgeTAM is a third-party open source project. When cloning EdgeTAM, you must maintain all copyright notices and comply with EdgeTAM's license terms. See the onboarding skill for details.
 
-2. **Learning Path**: See the [learning path documentation](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) for onboarding instructions and tutorials.
+2. **Learning Path**: See the [learning path documentation](https://learn.arm.com/learning-paths/cross-platform/sme-executorch-profiling/) for onboarding instructions and tutorials.
 
 ### Quick Onboarding Steps
 
@@ -193,12 +231,12 @@ The pipeline automatically handles analysis and report generation - no model-spe
 - **Agent Skills**: [`agent_skill_ml_profiling/readme.md`](agent_skill_ml_profiling/readme.md) - Catalog of automation skills
 - **Command Reference**: [`model_profiling/pipeline_commands.md`](model_profiling/pipeline_commands.md) - Detailed workflow commands
 - **Scripts Overview**: [`model_profiling/scripts/readme.md`](model_profiling/scripts/readme.md) - Script documentation
-- **Report Generation**: [`agent_skill_ml_profiling/07_report_generation.md`](agent_skill_ml_profiling/07_report_generation.md) - Workflow for generating reports with operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
-- **Model Onboarding**: [`agent_skill_ml_profiling/08_onboard_edgetam.md`](agent_skill_ml_profiling/08_onboard_edgetam.md) - Step-by-step EdgeTAM onboarding example
+- **Report Generation**: [`agent_skill_ml_profiling/generate-report/SKILL.md`](agent_skill_ml_profiling/generate-report/SKILL.md) - Workflow for generating reports with operator-specific bottleneck analysis, portable vs delegated operator identification, and kernel-level insights
+- **Model Onboarding**: [`agent_skill_ml_profiling/onboard-edgetam-image-encoder/SKILL.md`](agent_skill_ml_profiling/onboard-edgetam-image-encoder/SKILL.md) - Step-by-step EdgeTAM image encoder onboarding workflow
 
 ### External Resources
 
-- **Learning Path**: [Profiling ExecuTorch Models with SME2 on Arm](https://learn.arm.com/learning-paths/embedded-and-microcontrollers/sme-executorch-profiling/) - Additional documentation and tutorials (optional - this repository is self-contained)
+- **Learning Path**: [Profiling ExecuTorch Models with SME2 on Arm](https://learn.arm.com/learning-paths/cross-platform/sme-executorch-profiling/) - Additional documentation and tutorials (optional - this repository is self-contained)
 
 ## License
 

@@ -342,9 +342,15 @@ def generate_report(run_dir: Path, output_path: Optional[Path] = None, title: Op
     # ExecuTorch info
     lines.append("")
     lines.append("### ExecuTorch Information\n")
-    if manifest_data.get("executorch", {}).get("sha"):
+    if manifest_data.get("executorch", {}).get("actual_sha") or manifest_data.get("executorch", {}).get("sha"):
         et_info = manifest_data["executorch"]
-        lines.append(f"- **ExecuTorch SHA**: `{et_info['sha']}`")
+        actual_sha = et_info.get("actual_sha") or et_info.get("sha")
+        lines.append(f"- **ExecuTorch SHA**: `{actual_sha}`")
+        if et_info.get("expected_sha"):
+            lines.append(f"- **Expected SHA**: `{et_info['expected_sha']}`")
+            lines.append(f"- **Pin Compatible**: {'Yes' if et_info.get('compatible') else 'No'}")
+        if et_info.get("patches_required") is not None:
+            lines.append(f"- **ExecuTorch/XNNPACK Patches Required**: {'Yes' if et_info.get('patches_required') else 'No'}")
         lines.append(f"- **ExecuTorch Status**: {'⚠️ Dirty' if et_info.get('dirty') else '✓ Clean'}")
     
     lines.append("")

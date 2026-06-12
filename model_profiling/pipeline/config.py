@@ -34,3 +34,4 @@ class PipelineConfig:
     output_root: Optional[Path]
     experiments: List[ExperimentConfig]
     comparisons: List[ComparisonConfig] = field(default_factory=list)
+    config_path: Optional[Path] = None

@@ -18,6 +18,7 @@ def load_pipeline_config(path: Path) -> PipelineConfig:
         output_root=output_root,
         experiments=experiments,
         comparisons=comparisons,
+        config_path=path,
     )
 
 

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Run Profiling"
+  short_description: "Run timing or XNNPACK trace experiments"
+  default_prompt: "Use $run-profiling to create configs and run SME2-on/off timing or XNNPACK trace profiling."
+policy:
+  allow_implicit_invocation: true

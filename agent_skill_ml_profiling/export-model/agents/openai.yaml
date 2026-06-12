@@ -1,0 +1,6 @@
+interface:
+  display_name: "Export Model"
+  short_description: "Export registered models to ExecuTorch PTE"
+  default_prompt: "Use $export-model to export a registered model into an ExecuTorch .pte artifact."
+policy:
+  allow_implicit_invocation: true

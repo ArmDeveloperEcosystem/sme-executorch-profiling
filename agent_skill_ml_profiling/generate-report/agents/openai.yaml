@@ -1,0 +1,6 @@
+interface:
+  display_name: "Generate Report"
+  short_description: "Create Markdown reports from profiling outputs"
+  default_prompt: "Use $generate-report to produce a Markdown report from SME2 profiling results."
+policy:
+  allow_implicit_invocation: true
