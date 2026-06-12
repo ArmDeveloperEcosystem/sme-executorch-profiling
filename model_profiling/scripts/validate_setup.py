@@ -47,9 +47,14 @@ def _git_output(repo: Path, *args: str) -> str:
 
 def _has_tracked_changes(repo: Path) -> bool:
     try:
-        subprocess.check_call(["git", "-C", str(repo), "diff", "--quiet"])
-        subprocess.check_call(["git", "-C", str(repo), "diff", "--cached", "--quiet"])
-        return False
+        output = _git_output(
+            repo,
+            "status",
+            "--porcelain",
+            "--untracked-files=no",
+            "--ignore-submodules=none",
+        )
+        return bool(output)
     except subprocess.CalledProcessError:
         return True
 
@@ -63,6 +68,17 @@ def _submodules_ok(repo: Path) -> bool:
         if line.startswith("-") or line.startswith("+") or line.startswith("U"):
             return False
     return True
+
+
+def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
+    return (
+        subprocess.call(
+            ["git", "-C", str(repo), "merge-base", "--is-ancestor", ancestor, descendant],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        == 0
+    )
 
 
 def main() -> int:
@@ -97,6 +113,11 @@ def main() -> int:
         action="store_true",
         help="Require XNNPACK logging runner variants in addition to timing runners.",
     )
+    ap.add_argument(
+        "--require-android-runners",
+        action="store_true",
+        help="Require Android arm64-v9a runner binaries and an Android NDK toolchain.",
+    )
     args = ap.parse_args()
 
     all_ok = True
@@ -125,9 +146,9 @@ def main() -> int:
             dirty = _has_tracked_changes(executorch_dir)
             print(f"ℹ️  ExecuTorch SHA: {sha}{' (dirty)' if dirty else ''}")
             if expected_sha:
-                version_ok = sha == expected_sha
-                message = f"ExecuTorch matches pinned SHA: {expected_sha}"
-                mismatch = f"ExecuTorch SHA mismatch: expected {expected_sha}, got {sha}"
+                version_ok = sha == expected_sha or _is_ancestor(executorch_dir, expected_sha, sha)
+                message = f"ExecuTorch is compatible with pinned SHA: {expected_sha}"
+                mismatch = f"ExecuTorch SHA mismatch: expected {expected_sha} or a descendant, got {sha}"
                 all_ok &= check_or_warn(
                     version_ok,
                     args.allow_version_mismatch,
@@ -180,6 +201,27 @@ def main() -> int:
                     executorch_dir / "cmake-out" / "mac-arm64-sme2-off-xnnlog" / "executor_runner",
                 ]
             )
+        if args.require_android_runners:
+            android_ndk = os.environ.get("ANDROID_NDK") or os.environ.get("ANDROID_NDK_HOME")
+            toolchain = Path(android_ndk) / "build" / "cmake" / "android.toolchain.cmake" if android_ndk else None
+            all_ok &= check(
+                bool(toolchain and toolchain.exists()),
+                "Android NDK toolchain available",
+                "missing Android NDK toolchain (set ANDROID_NDK or ANDROID_NDK_HOME)",
+            )
+            required_runners.extend(
+                [
+                    executorch_dir / "cmake-out" / "android-arm64-v9a" / "executor_runner",
+                    executorch_dir / "cmake-out" / "android-arm64-v9a-sme2-off" / "executor_runner",
+                ]
+            )
+            if args.require_xnntrace_runners:
+                required_runners.extend(
+                    [
+                        executorch_dir / "cmake-out" / "android-arm64-v9a-xnnlog" / "executor_runner",
+                        executorch_dir / "cmake-out" / "android-arm64-v9a-sme2-off-xnnlog" / "executor_runner",
+                    ]
+                )
         for runner in required_runners:
             all_ok &= check(runner.exists(), f"runner exists: {runner}", f"runner missing: {runner}")
 

@@ -44,8 +44,8 @@ if ! command -v ninja >/dev/null 2>&1; then
   exit 1
 fi
 
-# Merge CMake presets
-echo "Merging CMake presets..."
+# Install CMake user presets without modifying ExecuTorch's tracked presets.
+echo "Installing CMake user presets..."
 python "${ROOT_DIR}/model_profiling/scripts/merge_cmake_presets.py"
 
 # Build Mac runners (runners stay in executorch/cmake-out/ for version tracking)

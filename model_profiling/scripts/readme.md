@@ -12,13 +12,21 @@ cd executorch_sme2_kit/
 
 The scripts will create (or reuse):
 - `.venv/` Python virtual environment
-- `executorch/` ExecuTorch checkout (defaults to the pinned ref in `model_profiling/assets/executorch_commit.txt`)
+- `executorch/` ExecuTorch checkout (defaults to the pinned public ref in `model_profiling/assets/executorch_commit.txt`)
 - `executorch/cmake-out/` built `executor_runner` binaries (runners stay with their ExecuTorch version for traceability)
 - `out_<model>/artifacts/` exported `.pte` and `.etrecord` files
 - `model_profiling/configs/` JSON pipeline configs
 - `out_<model>/runs/` results, logs, traces, and manifests
 
 **Note**: Replace `<model>` with your actual model name (e.g., `out_mobilenet/`, `out_edgetam/`).
+
+## Requirements
+
+- Python 3.9+, Git, CMake, Ninja, and, on macOS, Xcode Command Line Tools.
+- Network access to GitHub and Python package indexes for first-time setup.
+- Arm macOS host for the local smoke workflow. SME2 kernel-selection proof on macOS requires SME2-capable Apple Silicon, such as Apple M4.
+- Android runner build: set `ANDROID_NDK` or `ANDROID_NDK_HOME` to an Android NDK with `build/cmake/android.toolchain.cmake`. If neither variable is set, `build_runners.sh` exits successfully after building macOS runners and prints that Android was skipped.
+- Android device run: install Android platform-tools so `adb` is available, and use an Armv9 Android device with SME2 support when you need to observe SME2 kernel deltas on device.
 
 ## Time budget (clean machine)
 
@@ -53,7 +61,9 @@ export EXECUTORCH_DIR=/path/to/executorch
 bash model_profiling/scripts/setup_repo.sh
 ```
 
-By default, setup and validation expect the pinned ExecuTorch commit in `model_profiling/assets/executorch_commit.txt`, no tracked local ExecuTorch/XNNPACK patches, and matching submodules. The setup script initializes submodules for an existing checkout. The public toy/demo workflow does not require ET or XNNPACK patches. If you intentionally use a local patched checkout, record that in your report and opt in with the relevant `SME2_EXECUTORCH_ALLOW_*` environment variable or `validate_setup.py --allow-*` option.
+By default, setup and validation expect the pinned public ExecuTorch commit in `model_profiling/assets/executorch_commit.txt` or a clean descendant checkout, no tracked local ExecuTorch/XNNPACK patches, and matching submodules. The setup script initializes submodules for an existing checkout. The public toy/demo workflow does not require ET or XNNPACK patches. If you intentionally use a local patched checkout, record that in your report and opt in with the relevant `SME2_EXECUTORCH_ALLOW_*` environment variable or `validate_setup.py --allow-*` option.
+
+The editable ExecuTorch install disables optional MLX/CoreML/LLM/training CMake targets by default, and the runner presets keep unrelated LLM/training targets off. The profiling workflow builds dedicated XNNPACK runners later, so those optional backends are not required for setup or SME2 kernel-selection validation.
 
 Pre-check an existing checkout before setup:
 
@@ -69,6 +79,7 @@ python model_profiling/scripts/validate_setup.py \
 
 ```bash
 # 1. Setup (one-time)
+# Omit EXECUTORCH_DIR for fresh setup; set it only to reuse an existing checkout.
 export EXECUTORCH_DIR=/path/to/executorch
 bash model_profiling/scripts/setup_repo.sh
 
@@ -80,6 +91,11 @@ source .venv/bin/activate
 
 # 3a. Validate setup, including timing and XNNPACK trace runners
 python model_profiling/scripts/validate_setup.py --require-xnntrace-runners
+
+# For Android runner validation, require the NDK and Android runner outputs too:
+python model_profiling/scripts/validate_setup.py \
+  --require-xnntrace-runners \
+  --require-android-runners
 
 # 4. Export model
 python model_profiling/export/export_model.py \

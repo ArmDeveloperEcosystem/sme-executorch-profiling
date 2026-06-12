@@ -8,6 +8,7 @@ VENV_DIR="${ROOT_DIR}/.venv"
 EXECUTORCH_PIN_FILE="${ROOT_DIR}/model_profiling/assets/executorch_commit.txt"
 EXECUTORCH_REPO_URL="${EXECUTORCH_REPO_URL:-https://github.com/pytorch/executorch.git}"
 EXISTING_EXECUTORCH_DIR="${EXECUTORCH_DIR_OVERRIDE:-${USER_EXECUTORCH_DIR:-${EXECUTORCH_PATH:-}}}"
+FRESH_EXECUTORCH_CLONE=0
 if [[ -n "${EXECUTORCH_REF:-}" ]]; then
   EXECUTORCH_CHECKOUT_REF="${EXECUTORCH_REF}"
 elif [[ -f "${EXECUTORCH_PIN_FILE}" ]]; then
@@ -65,7 +66,7 @@ fi
 export PIP_CACHE_DIR="${ROOT_DIR}/.pip-cache"
 mkdir -p "${PIP_CACHE_DIR}"
 
-# Optional escape hatch for corporate proxies / broken SSL trust stores.
+# Optional escape hatch for network proxies / broken SSL trust stores.
 # This is NOT recommended for normal environments.
 if [[ "${SME2_PIP_INSECURE:-0}" == "1" ]]; then
   echo "⚠️  SME2_PIP_INSECURE=1 enabled: pip will trust hosts for PyPI. Use only if you understand the risk." >&2
@@ -78,7 +79,7 @@ trusted-host =
 EOF
 fi
 
-# Best-effort upgrade. If a user has corporate SSL/proxy issues, we still want them to proceed
+# Best-effort upgrade. If a user has network SSL/proxy issues, we still want them to proceed
 # (venv already ships with a working pip/setuptools baseline).
 if python -m pip install --upgrade pip wheel setuptools >/dev/null 2>&1; then
   echo "[sme2-profiling] pip tooling upgraded"
@@ -105,11 +106,14 @@ fi
 if [[ ! -d "${EXECUTORCH_DIR}/.git" ]]; then
   echo "[sme2-profiling] Cloning ExecuTorch: ${EXECUTORCH_DIR}"
   git clone --no-checkout "${EXECUTORCH_REPO_URL}" "${EXECUTORCH_DIR}"
+  FRESH_EXECUTORCH_CLONE=1
 fi
 
-if [[ "${SME2_EXECUTORCH_ALLOW_DIRTY:-0}" != "1" ]]; then
-  if ! git -C "${EXECUTORCH_DIR}" diff --quiet || ! git -C "${EXECUTORCH_DIR}" diff --cached --quiet; then
+if [[ "${FRESH_EXECUTORCH_CLONE}" != "1" && "${SME2_EXECUTORCH_ALLOW_DIRTY:-0}" != "1" ]]; then
+  TRACKED_STATUS="$(git -C "${EXECUTORCH_DIR}" status --porcelain --untracked-files=no --ignore-submodules=none)"
+  if [[ -n "${TRACKED_STATUS}" ]]; then
     echo "ERROR: ${EXECUTORCH_DIR} has local tracked changes." >&2
+    echo "${TRACKED_STATUS}" >&2
     echo "Refusing to change the ExecuTorch checkout. Commit/stash changes or rerun with SME2_EXECUTORCH_ALLOW_DIRTY=1." >&2
     exit 1
   fi
@@ -121,12 +125,18 @@ if [[ -n "${EXISTING_EXECUTORCH_DIR}" ]]; then
   if git -C "${EXECUTORCH_DIR}" rev-parse --verify "${EXECUTORCH_CHECKOUT_REF}^{commit}" >/dev/null 2>&1; then
     EXPECTED_SHA="$(git -C "${EXECUTORCH_DIR}" rev-parse "${EXECUTORCH_CHECKOUT_REF}^{commit}")"
   fi
-  if [[ "${SME2_EXECUTORCH_ALLOW_REF_MISMATCH:-0}" != "1" && "${ACTUAL_SHA}" != "${EXPECTED_SHA}" ]]; then
+  if [[ "${ACTUAL_SHA}" == "${EXPECTED_SHA}" ]]; then
+    echo "[sme2-profiling] Existing ExecuTorch checkout matches expected ref: ${EXPECTED_SHA}"
+  elif git -C "${EXECUTORCH_DIR}" merge-base --is-ancestor "${EXPECTED_SHA}" "${ACTUAL_SHA}" >/dev/null 2>&1; then
+    echo "[sme2-profiling] Existing ExecuTorch checkout contains expected ref: ${EXPECTED_SHA}"
+  elif [[ "${SME2_EXECUTORCH_ALLOW_REF_MISMATCH:-0}" != "1" ]]; then
     echo "ERROR: existing ExecuTorch checkout is not at the expected ref." >&2
-    echo "  expected: ${EXPECTED_SHA}" >&2
+    echo "  expected: ${EXPECTED_SHA} or a descendant" >&2
     echo "  actual:   ${ACTUAL_SHA}" >&2
     echo "Check out the pinned ref or rerun with SME2_EXECUTORCH_ALLOW_REF_MISMATCH=1." >&2
     exit 1
+  else
+    echo "WARNING: Existing ExecuTorch checkout does not contain expected ref; continuing because SME2_EXECUTORCH_ALLOW_REF_MISMATCH=1." >&2
   fi
   git -C "${EXECUTORCH_DIR}" submodule sync --recursive
   git -C "${EXECUTORCH_DIR}" submodule update --init --recursive
@@ -150,6 +160,16 @@ else
   git -C "${EXECUTORCH_DIR}" checkout --detach "${EXECUTORCH_CHECKOUT_REF}"
   git -C "${EXECUTORCH_DIR}" submodule sync --recursive
   git -C "${EXECUTORCH_DIR}" submodule update --init --recursive
+fi
+
+if [[ "${SME2_EXECUTORCH_ALLOW_DIRTY:-0}" != "1" ]]; then
+  TRACKED_STATUS="$(git -C "${EXECUTORCH_DIR}" status --porcelain --untracked-files=no --ignore-submodules=none)"
+  if [[ -n "${TRACKED_STATUS}" ]]; then
+    echo "ERROR: ${EXECUTORCH_DIR} has local tracked changes." >&2
+    echo "${TRACKED_STATUS}" >&2
+    echo "Refusing to continue with a dirty ExecuTorch checkout. Commit/stash changes or rerun with SME2_EXECUTORCH_ALLOW_DIRTY=1." >&2
+    exit 1
+  fi
 fi
 
 if [[ "${SME2_EXECUTORCH_ALLOW_SUBMODULE_MISMATCH:-0}" != "1" ]]; then
@@ -179,20 +199,68 @@ rm -rf "${TMP_DL_DIR}"
 echo "[sme2-profiling] Preflight OK: pip downloads working"
 
 echo "[sme2-profiling] Installing ExecuTorch (editable)"
+DEFAULT_EXECUTORCH_INSTALL_CMAKE_ARGS=(
+  "-DEXECUTORCH_BUILD_MLX=OFF"
+  "-DET_MLX_ENABLE_OP_LOGGING=OFF"
+  "-DEXECUTORCH_BUILD_COREML=OFF"
+  "-DEXECUTORCH_BUILD_EXTENSION_TRAINING=OFF"
+  "-DEXECUTORCH_BUILD_EXTENSION_LLM=OFF"
+  "-DEXECUTORCH_BUILD_EXTENSION_LLM_RUNNER=OFF"
+  "-DEXECUTORCH_BUILD_KERNELS_LLM=OFF"
+  "-DEXECUTORCH_BUILD_KERNELS_LLM_AOT=OFF"
+)
+if [[ "${SME2_EXECUTORCH_ENABLE_OPTIONAL_APPLE_BACKENDS:-0}" == "1" ]]; then
+  DEFAULT_EXECUTORCH_INSTALL_CMAKE_ARGS=()
+fi
+
+if [[ -n "${SME2_EXECUTORCH_INSTALL_CMAKE_ARGS+x}" ]]; then
+  INSTALL_CMAKE_ARGS="${SME2_EXECUTORCH_INSTALL_CMAKE_ARGS}"
+else
+  INSTALL_CMAKE_ARGS="${DEFAULT_EXECUTORCH_INSTALL_CMAKE_ARGS[*]}"
+fi
+EXISTING_CMAKE_ARGS="${CMAKE_ARGS:-}"
+export CMAKE_ARGS="${INSTALL_CMAKE_ARGS}${EXISTING_CMAKE_ARGS:+ ${EXISTING_CMAKE_ARGS}}"
+if [[ -n "${INSTALL_CMAKE_ARGS}" ]]; then
+  echo "[sme2-profiling] ExecuTorch install CMake args: ${INSTALL_CMAKE_ARGS}"
+fi
+
+INSTALL_ARGS=(--editable)
+if [[ "${SME2_EXECUTORCH_INSTALL_EXAMPLES:-1}" != "1" ]]; then
+  INSTALL_ARGS+=(--minimal)
+fi
+
 if (
   cd "${EXECUTORCH_DIR}"
-  ./install_executorch.sh --editable
+  PYTHON_EXECUTABLE="$(command -v python)" python ./install_executorch.py "${INSTALL_ARGS[@]}"
 ); then
-  echo "[sme2-profiling] ExecuTorch install OK"
+  echo "[sme2-profiling] ExecuTorch installer finished"
 else
   echo "❌ ExecuTorch install failed." >&2
   echo "Common causes:" >&2
-  echo "  - Corporate proxy / TLS certificates (e.g., 'OSStatus -26276' on macOS)" >&2
+  echo "  - Network proxy / TLS certificates (e.g., 'OSStatus -26276' on macOS)" >&2
   echo "    Fix: ensure your Python trusts system certs, then re-run." >&2
   echo "    If you must (not recommended), re-run with SME2_PIP_INSECURE=1." >&2
   echo "  - Missing build tooling (rerun: bash scripts/check_prereqs.sh)" >&2
   exit 1
 fi
+
+echo "[sme2-profiling] Verifying ExecuTorch Python modules"
+python - <<'PY'
+import importlib
+
+required_modules = [
+    "executorch",
+    "executorch.exir",
+    "executorch.backends.xnnpack.partition.xnnpack_partitioner",
+    "executorch.devtools",
+    "executorch.extension.export_util.utils",
+]
+
+for module in required_modules:
+    importlib.import_module(module)
+
+print("[sme2-profiling] ExecuTorch import check OK")
+PY
 
 echo "[sme2-profiling] Done."
 echo "Next:"

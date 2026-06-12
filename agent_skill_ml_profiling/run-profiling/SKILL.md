@@ -21,6 +21,7 @@ description: Run SME2-on versus SME2-off profiling experiments for an exported E
 - Built runner paths for the target platform.
 - Target platform: `mac` or `android`.
 - Experiment count, warmup count, thread counts, and optional Android `cpu_affinity`.
+- For Android execution: Android runner binaries built with `ANDROID_NDK`/`ANDROID_NDK_HOME`, Android platform-tools so `adb` is available, and an authorized Armv9 SME2-capable Android device when SME2 kernel evidence is required.
 
 ## Procedure
 
@@ -90,6 +91,7 @@ description: Run SME2-on versus SME2-off profiling experiments for an exported E
    For Android:
 
    ```bash
+   bash model_profiling/scripts/check_prereqs.sh --android-run
    python model_profiling/scripts/android_pipeline.py \
      --config model_profiling/configs/my_android_experiment.json
    ```
@@ -97,6 +99,7 @@ description: Run SME2-on versus SME2-off profiling experiments for an exported E
    For a remote Android device:
 
    ```bash
+   bash model_profiling/scripts/check_prereqs.sh --android-run
    python model_profiling/scripts/android_pipeline.py \
      --config model_profiling/configs/my_android_experiment.json \
      --remote-device 192.168.1.100:5555
@@ -138,6 +141,7 @@ description: Run SME2-on versus SME2-off profiling experiments for an exported E
 - Missing runner: use `build-runners`.
 - Missing `.pte`: use `export-model`.
 - Android device unavailable: run `adb devices`, authorize the device, or use `--remote-device`.
+- Android runner missing: rebuild with `ANDROID_NDK` or `ANDROID_NDK_HOME` set, then run `validate_setup.py --require-xnntrace-runners --require-android-runners`.
 - No CSV files after ETDump: rerun `analyze-results` and capture the converter error.
 - Trace logs requested for latency: split into separate timing and `xnntrace` experiments before drawing conclusions.
 

@@ -46,4 +46,6 @@ Use `validate-workflow` after setup/build or before a demo to prove the full smo
 - Use repository scripts before manual commands.
 - Preserve generated artifacts until the user asks for cleanup.
 - Use timing runs for latency claims and xnntrace runs only for kernel-selection evidence.
+- Keep public validation on the pinned public ExecuTorch base with no ET/XNNPACK patches unless local-development exceptions are explicitly reported.
+- Treat Android as a separate validation scope: Android runner validation requires `ANDROID_NDK`/`ANDROID_NDK_HOME`, and Android device profiling requires `adb` plus an SME2-capable Armv9 device.
 - Keep public compatibility files in place unless the Arm Learning Path is updated at the same time.

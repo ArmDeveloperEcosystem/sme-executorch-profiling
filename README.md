@@ -40,6 +40,14 @@ This framework provides:
 
 This code repository accompanies the [**Profiling ExecuTorch Models with SME2 on Arm**](https://learn.arm.com/learning-paths/cross-platform/sme-executorch-profiling/) learning path, which provides additional documentation and step-by-step instructions.
 
+## Requirements
+
+- Arm macOS host for the local smoke workflow. SME2 kernel-selection proof on macOS requires SME2-capable Apple Silicon, such as Apple M4.
+- Python 3.9+, Git, CMake, Ninja, and Xcode Command Line Tools on macOS.
+- Network access to GitHub and Python package indexes for fresh setup.
+- Optional Android build: set `ANDROID_NDK` or `ANDROID_NDK_HOME` to an Android NDK containing `build/cmake/android.toolchain.cmake`. If neither variable is set, `build_runners.sh` builds macOS runners and skips Android.
+- Optional Android run: install Android platform-tools so `adb` is available, and use an Armv9 Android device with SME2 support to observe SME2 kernel deltas.
+
 ## Quick Start
 
 1. **Clone this repository:**
@@ -49,28 +57,42 @@ This code repository accompanies the [**Profiling ExecuTorch Models with SME2 on
    ```
 
 2. **Set up ExecuTorch:**
+
+   Fresh setup, where the script clones the pinned public ExecuTorch ref:
+   ```bash
+   bash model_profiling/scripts/setup_repo.sh
+   ```
+
+   Or reuse an existing ExecuTorch checkout:
    ```bash
    export EXECUTORCH_DIR=/path/to/executorch
    bash model_profiling/scripts/setup_repo.sh
    ```
-   This uses the pinned ExecuTorch commit recorded in `model_profiling/assets/executorch_commit.txt`. When `EXECUTORCH_DIR` points to an existing checkout, setup links it into this repo as `./executorch`, initializes submodules, and installs it. Validation expects no local ET/XNNPACK patches for the public demo workflow.
+
+   Setup uses the pinned public ExecuTorch commit recorded in `model_profiling/assets/executorch_commit.txt`. When `EXECUTORCH_DIR` points to an existing checkout, setup links it into this repo as `./executorch`, initializes submodules, and installs it only if the checkout is at that commit or a clean descendant. Validation expects no local ET/XNNPACK patches for the public demo workflow.
+   The editable install disables optional MLX/CoreML/LLM/training CMake targets by default, and the runner presets keep unrelated LLM/training targets off, because this profiling flow validates XNNPACK execution and SME2 kernel selection.
 
 3. **Build runners:**
    ```bash
-   export EXECUTORCH_DIR=/path/to/executorch
    bash model_profiling/scripts/build_runners.sh
    ```
-   This builds timing runners and XNNPACK logging runners used for SME2 kernel-selection validation.
+   If you reused an external ExecuTorch checkout, keep `EXECUTORCH_DIR` exported for build and profiling commands.
+   This builds timing runners and XNNPACK logging runners used for SME2 kernel-selection validation. Android runners are built only when `ANDROID_NDK` or `ANDROID_NDK_HOME` is set.
 
 4. **Activate venv and export a model:**
    ```bash
-   export EXECUTORCH_DIR=/path/to/executorch
    source .venv/bin/activate
    python model_profiling/scripts/validate_setup.py --require-xnntrace-runners
    python model_profiling/export/export_model.py \
      --model <model_name> \
      --dtype fp16 \
      --outdir out_<model>/artifacts/
+   ```
+   For Android runner validation, use:
+   ```bash
+   python model_profiling/scripts/validate_setup.py \
+     --require-xnntrace-runners \
+     --require-android-runners
    ```
 
 5. **Create config and run profiling pipeline:**
